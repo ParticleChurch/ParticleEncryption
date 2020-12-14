@@ -99,4 +99,6 @@ namespace Encryption
 
 	extern bool encryptFile(const char* fileInput, const char* fileOutput);
 	extern bool decryptFile(const char* fileInput, const char* fileOutput);
+
+	extern uint64_t getDecryptedSize(Header header, uint64_t encryptedSize);
 }

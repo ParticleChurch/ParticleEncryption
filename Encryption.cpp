@@ -490,3 +490,13 @@ bool Encryption::decryptFile(const char* fileInput, const char* fileOutput)
 	free(outBuffer);
 	return true;
 }
+
+uint64_t Encryption::getDecryptedSize(Header header, uint64_t encryptedSize)
+{
+	if (encryptedSize <= header.size) return 0;
+	encryptedSize -= header.size;
+	uint64_t nChunks = encryptedSize / 256; // encryptedSize *should* be a multiple of 256
+	encryptedSize = nChunks * 252;
+	if (encryptedSize < header.endPadding) return 0;
+	return encryptedSize - header.endPadding;
+}
