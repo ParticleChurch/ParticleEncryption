@@ -37,21 +37,21 @@ uint8_t* Encryption::Header::generateBytes()
 	bytes[26 + bytes[24]] = this->byteModulo;
 	bytes[28 + bytes[24]] = NULL;
 
-	bytes[4]  = 'P' ;
-	bytes[5]  = 'A' ;
-	bytes[6]  = 'R' ;
-	bytes[7]  = 'T' ;
-	bytes[8]  = 'I' ;
-	bytes[9]  = 'C' ;
-	bytes[10] = 'L' ;
-	bytes[11] = 'E' ;
+	bytes[4] = 'P';
+	bytes[5] = 'A';
+	bytes[6] = 'R';
+	bytes[7] = 'T';
+	bytes[8] = 'I';
+	bytes[9] = 'C';
+	bytes[10] = 'L';
+	bytes[11] = 'E';
 
-	bytes[14] = 'C' ;
-	bytes[15] = 'H' ;
-	bytes[16] = 'U' ;
-	bytes[17] = 'R' ;
-	bytes[18] = 'C' ;
-	bytes[19] = 'H' ;
+	bytes[14] = 'C';
+	bytes[15] = 'H';
+	bytes[16] = 'U';
+	bytes[17] = 'R';
+	bytes[18] = 'C';
+	bytes[19] = 'H';
 
 	return bytes;
 };
@@ -77,16 +77,17 @@ Encryption::Header Encryption::parseHeader(uint8_t* bytes, size_t nBytes)
 	if (nBytes < minHeaderSize)
 	{
 		head.isValid = false;
+		head.parseError = "Expected at least " + std::to_string(minHeaderSize) + " bytes, but got " + std::to_string(nBytes) + " bytes";
 		return head;
 	}
 
 	bool PARTICLECHURCH =
-		bytes[4]  == 'P' &&
-		bytes[5]  == 'A' &&
-		bytes[6]  == 'R' &&
-		bytes[7]  == 'T' &&
-		bytes[8]  == 'I' &&
-		bytes[9]  == 'C' &&
+		bytes[4] == 'P' &&
+		bytes[5] == 'A' &&
+		bytes[6] == 'R' &&
+		bytes[7] == 'T' &&
+		bytes[8] == 'I' &&
+		bytes[9] == 'C' &&
 		bytes[10] == 'L' &&
 		bytes[11] == 'E' &&
 
@@ -95,17 +96,19 @@ Encryption::Header Encryption::parseHeader(uint8_t* bytes, size_t nBytes)
 		bytes[16] == 'U' &&
 		bytes[17] == 'R' &&
 		bytes[18] == 'C' &&
-		bytes[19] == 'H'  ;
+		bytes[19] == 'H';
 
 	if (!PARTICLECHURCH)
 	{
 		head.isValid = false;
+		head.parseError = "PARTICLECHURCH not found, actually got: " + std::string((char*)bytes, nBytes);
 		return head;
 	}
 
 	if (bytes[12] || bytes[23])
 	{
 		head.isValid = false;
+		head.parseError = "nonzero NULLS";
 		return head;
 	}
 
@@ -115,6 +118,7 @@ Encryption::Header Encryption::parseHeader(uint8_t* bytes, size_t nBytes)
 	if (nBytes < head.size)
 	{
 		head.isValid = false;
+		head.parseError = "bytes sent is less than bytes required";
 		return head;
 	}
 
@@ -122,16 +126,17 @@ Encryption::Header Encryption::parseHeader(uint8_t* bytes, size_t nBytes)
 	head.byteOffset = bytes[20];
 	head.byteModulo = bytes[26 + head.nRandomBytes];
 	head.isValid = true;
-	
+	head.parseError = "none";
+
 	return head;
 }
 
 void Encryption::encryptChunk(Header& header, size_t chunkIndex, uint8_t* decrypted/* size = 252 */, uint8_t* encrypted/* size = 265 */)
 {
 	uint8_t byteRotation = 1 + (encrypted[0] = random()) % 251;
-	uint8_t bitRotation  = (encrypted[1] = random());
-	uint8_t cutLocation  = 10 + (encrypted[2] = random()) % 200;
-	uint8_t inversion    = 10 + (encrypted[3] = random()) % 200;
+	uint8_t bitRotation = (encrypted[1] = random());
+	uint8_t cutLocation = 10 + (encrypted[2] = random()) % 200;
+	uint8_t inversion = 10 + (encrypted[3] = random()) % 200;
 
 	for (uint8_t i = 0; i < 252; i++)
 	{
@@ -155,9 +160,9 @@ void Encryption::encryptChunk(Header& header, size_t chunkIndex, uint8_t* decryp
 void Encryption::decryptChunk(Header& header, size_t chunkIndex, uint8_t* encrypted/* size = 256 */, uint8_t* decrypted/* size = 252 */)
 {
 	uint8_t byteRotation = 1 + encrypted[0] % 251;
-	uint8_t bitRotation  = encrypted[1];
-	uint8_t cutLocation  = 10 + encrypted[2] % 200;
-	uint8_t inversion    = 10 + encrypted[3] % 200;
+	uint8_t bitRotation = encrypted[1];
+	uint8_t cutLocation = 10 + encrypted[2] % 200;
+	uint8_t inversion = 10 + encrypted[3] % 200;
 
 	for (uint8_t i = 0; i < 252; i++)
 	{
@@ -368,7 +373,7 @@ bool Encryption::decryptFile(const char* fileInput, const char* fileOutput)
 		inFile.close();
 		return false;
 	}
-	
+
 	size_t headerSearchSize = (size_t)std::min(inFileSize, (uint64_t)maxHeaderSize);
 	uint8_t* headerBytes = (uint8_t*)malloc(headerSearchSize);
 	if (!headerBytes)

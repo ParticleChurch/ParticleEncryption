@@ -5,11 +5,12 @@
 #include <random>
 #include <chrono>
 #include <fstream>
+#include <string>
 
 /*
 
 The algorithm (it has been altered slightly, read the code):
-	
+
 	An encrypted file is split into 2 parts, the header and the file contents.
 	The header comes first, and is sizeof(Header) bytes long. See ParseHeader for comments on how it is stored.
 
@@ -19,17 +20,17 @@ The algorithm (it has been altered slightly, read the code):
 
 	to encrypt, follow these steps. to decrypt, follow them in reverse.
 	 1. If Inversion is even, then for every byte in the data,
-	    add (Header::ByteOffset + ChunkIndex) % max(Header::ByteModulo, Inversion) allow it to overflow
+		add (Header::ByteOffset + ChunkIndex) % max(Header::ByteModulo, Inversion) allow it to overflow
 		note: if max(Header::ByteModulo, Inversion) == 0, then modulo by 69 instead (haha funny number right hahahaha)
 	 2. Bit rotate each byte by (BitRotation % 8) to the right (here's the formula for such a rotation)
-	    rotated = (original << BitRotation) | (original >> (8 - BitRotation));
+		rotated = (original << BitRotation) | (original >> (8 - BitRotation));
 	 3. Rotate the list of bytes to the right by ByteRotation, for example if ByteRotation = 1
-	    {a,b,c,d} => {d,a,b,c}
+		{a,b,c,d} => {d,a,b,c}
 	 4. "Cut the deck" of bytes at index CutLocation, for example, if CutLocation = 4:
-	    {a,b,c,d,e,f,g} => {e,f,g,a,b,c,d}
+		{a,b,c,d,e,f,g} => {e,f,g,a,b,c,d}
 
 	assuming that the file size was not perfectly divisible by 252, there are some remaining bytes
-	upon encryption, these bytes are shifted to the right to be at the end of their chunk, 
+	upon encryption, these bytes are shifted to the right to be at the end of their chunk,
 	then the empty spots are filled randomly. The number of bytes that were randomized is stored in Header::EndPadding,
 	then the chunk is processed as normal
 
@@ -40,7 +41,7 @@ namespace Encryption
 	constexpr bool debug = false;
 	constexpr size_t minHeaderSize = 30;
 	constexpr size_t maxHeaderSize = 285;
-	
+
 	extern uint8_t random();
 
 	struct Header
@@ -50,10 +51,11 @@ namespace Encryption
 		uint8_t byteOffset;
 		uint8_t nRandomBytes;
 
-		bool isValid;
-
 		size_t size; // stores a number on interval [30, 285]
 		uint8_t* generateBytes();
+
+		bool isValid;
+		std::string parseError;
 	};
 
 	extern Header generateHeader();
@@ -93,7 +95,7 @@ namespace Encryption
 			30 + NRandomBytes	random number
 		this means that the header is anywhere from 30 to (30+255=) 285 bytes
 	*/
-	
+
 	extern void encryptChunk(Header& header, size_t chunkIndex, uint8_t* original/* size = 252 */, uint8_t* output/* size = 265 */);
 	extern void decryptChunk(Header& header, size_t chunkIndex, uint8_t* original/* size = 256 */, uint8_t* output/* size = 252 */);
 
