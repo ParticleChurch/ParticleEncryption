@@ -2,6 +2,7 @@
 #include <chrono>
 #include <thread>
 
+/*
 int main()
 {
 	auto a = std::chrono::steady_clock::now();
@@ -15,4 +16,11 @@ int main()
 
 	while (1);
 	return 0;
+}
+//*/
+
+int main()
+{
+	for (int i = 0; i < 100; i++)
+		Encryption::encryptFile(("E:\\GitHub\\Metamorpher\\out\\" + std::to_string(i) + ".dll").c_str(), ("E:\\GitHub\\Metamorpher\\out_encrypted\\" + std::to_string(i) + ".dll").c_str());
 }
