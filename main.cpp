@@ -22,5 +22,5 @@ int main()
 int main()
 {
 	for (int i = 0; i < 100; i++)
-		Encryption::encryptFile(("E:\\GitHub\\Metamorpher\\out\\" + std::to_string(i) + ".dll").c_str(), ("E:\\GitHub\\Metamorpher\\out_encrypted\\" + std::to_string(i) + ".dll").c_str());
+		Encryption::encryptFile(("E:\\GitHub\\Metamorpher\\out_string_encrypted\\" + std::to_string(i) + ".dll").c_str(), ("E:\\GitHub\\Metamorpher\\out_all_encrypted\\" + std::to_string(i) + ".dll").c_str());
 }
